@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MISIÓN UMBRAL — Protocolo de Ética IA</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080c0a;--bg2:#0c1210;--bg3:#101810;
+  --border:#192419;--green:#00ff41;--gdim:#2aaa45;
+  --cyan:#44d9e8;--yellow:#e6c040;--orange:#f08040;
+  --red:#ff4055;--purple:#bb88ff;--white:#c8d4c8;--dim:#4a6450;
+  --mono:'Share Tech Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{background:var(--bg);color:var(--green);font-family:var(--mono);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.05) 3px,rgba(0,0,0,.05) 4px);pointer-events:none;z-index:9999;}
+canvas#matrix-bg{position:fixed;top:0;left:0;z-index:0;pointer-events:none;opacity:.18;}
+.hidden{display:none!important;}
+
+/* ── BOOT ── */
+#boot{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:8vw 10vw;background:var(--bg);z-index:500;}
+#boot-log{font-size:.82rem;line-height:2.1;max-width:680px;}
+.bl{opacity:0;animation:fadeIn .05s forwards;} @keyframes fadeIn{to{opacity:1;}}
+.bl-ok{color:var(--green);} .bl-dim{color:var(--dim);} .bl-err{color:var(--red);}
+.bl-title{color:var(--green);font-size:1.25rem;letter-spacing:.18em;margin-bottom:.7rem;}
+.boot-fill{display:inline-block;height:8px;background:var(--green);width:0;animation:bfill 1.3s ease-out forwards;vertical-align:middle;margin-left:.5rem;}
+@keyframes bfill{to{width:200px;}}
+
+/* ── START ── */
+#start{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:2rem 1.5rem;text-align:center;position:relative;z-index:10;}
+.s-kicker{font-size:.62rem;color:var(--dim);letter-spacing:.35em;margin-bottom:.4rem;}
+.s-title{font-size:clamp(2rem,6vw,3.6rem);color:var(--green);letter-spacing:.18em;text-shadow:0 0 30px rgba(0,255,65,.4),0 0 60px rgba(0,255,65,.15);margin-bottom:.2rem;}
+.s-sub{font-size:.7rem;color:var(--dim);letter-spacing:.28em;margin-bottom:2.2rem;}
+.brief{max-width:560px;width:100%;border:1px solid var(--border);border-left:3px solid var(--gdim);padding:1.3rem 1.5rem;margin-bottom:2rem;text-align:left;background:var(--bg3);position:relative;}
+.brief::before{content:'// BRIEFING DE MISIÓN';position:absolute;top:-.52rem;left:1rem;background:var(--bg3);padding:0 .4rem;font-size:.6rem;color:var(--gdim);letter-spacing:.15em;}
+.brief p{font-family:var(--sans);font-size:.9rem;color:var(--white);line-height:1.75;}
+.inp-group{width:100%;max-width:400px;text-align:left;margin-bottom:1.5rem;}
+.inp-lbl{display:block;font-size:.66rem;color:var(--dim);letter-spacing:.12em;margin-bottom:.4rem;}
+.t-input{width:100%;background:var(--bg3);border:1px solid var(--gdim);color:var(--green);font-family:var(--mono);font-size:1rem;padding:.7rem 1rem;outline:none;transition:box-shadow .2s;}
+.t-input::placeholder{color:var(--dim);}
+.t-input:focus{box-shadow:0 0 12px rgba(0,255,65,.2);}
+.btn-start{background:transparent;border:1px solid var(--green);color:var(--green);font-family:var(--mono);font-size:.93rem;letter-spacing:.12em;padding:.75rem 2.5rem;cursor:pointer;transition:all .2s;}
+.btn-start:hover:not(:disabled){background:rgba(0,255,65,.08);box-shadow:0 0 18px rgba(0,255,65,.25);}
+.btn-start:disabled{opacity:.28;cursor:not-allowed;}
+.cur{animation:blink .9s infinite;} @keyframes blink{50%{opacity:0;}}
+
+/* ── GAME ── */
+#game{min-height:100vh;display:flex;flex-direction:column;position:relative;z-index:10;}
+#topbar{display:flex;justify-content:space-between;align-items:center;padding:.42rem 1.3rem;border-bottom:1px solid var(--border);background:rgba(12,18,16,.95);font-size:.68rem;color:var(--dim);flex-shrink:0;flex-wrap:wrap;gap:.3rem;}
+#tb-org{color:var(--green);}
+#tb-mod{color:var(--white);}
+#tb-timer{font-size:1.05rem;font-weight:bold;transition:color .3s;min-width:52px;text-align:right;}
+.t-green{color:var(--green);} .t-yellow{color:var(--yellow);} .t-orange{color:var(--orange);}
+.t-red{color:var(--red);animation:tpulse .5s infinite;} @keyframes tpulse{50%{opacity:.4;}}
+#xferbar{display:flex;align-items:center;gap:.55rem;padding:.32rem 1.3rem;border-bottom:1px solid var(--border);background:rgba(12,18,16,.9);font-size:.66rem;color:var(--dim);flex-shrink:0;flex-wrap:wrap;}
+#xfer-name{color:var(--cyan);flex:1;min-width:120px;word-break:break-all;}
+#xfer-bg{width:110px;height:4px;background:var(--bg3);border:1px solid var(--border);flex-shrink:0;}
+#xfer-fill{height:100%;background:var(--cyan);width:0;transition:width .04s;}
+#xfer-pct{color:var(--cyan);min-width:32px;} #xfer-stat{color:var(--dim);}
+
+#content{flex:1;overflow-y:auto;padding:1.3rem 1.3rem .8rem;max-width:800px;width:100%;margin:0 auto;position:relative;}
+.mod-path{font-size:.63rem;color:var(--dim);margin-bottom:1.1rem;} .mod-path span{color:var(--gdim);}
+#marco-box{border:1px solid var(--border);border-left:3px solid var(--gdim);padding:.9rem 1.1rem;margin-bottom:1rem;background:var(--bg3);position:relative;display:none;}
+#marco-box::before{content:'// MARCO REFERENCIAL';position:absolute;top:-.5rem;left:1rem;background:var(--bg3);padding:0 .4rem;font-size:.58rem;color:var(--gdim);letter-spacing:.15em;}
+#marco-text{font-family:var(--sans);font-size:.88rem;color:var(--white);line-height:1.72;}
+#sit-box{margin-bottom:1.1rem;display:none;}
+.sit-label{font-size:.6rem;color:var(--dim);letter-spacing:.2em;margin-bottom:.6rem;}
+#sit-text{font-family:var(--sans);font-size:.96rem;color:var(--white);line-height:1.72;margin-bottom:.85rem;}
+#q-text{font-family:var(--sans);font-size:.91rem;color:var(--gdim);font-style:italic;}
+#opts{display:none;flex-direction:column;gap:.52rem;margin-bottom:1.1rem;}
+.opt{background:transparent;border:1px solid var(--border);color:var(--white);font-family:var(--sans);font-size:.87rem;line-height:1.55;padding:.78rem 1.1rem;text-align:left;cursor:pointer;transition:all .15s;position:relative;}
+.opt::before{content:attr(data-k);font-family:var(--mono);font-size:.68rem;color:var(--dim);margin-right:.6rem;}
+.mNK .opt:hover:not(:disabled){border-color:var(--cyan);background:rgba(68,217,232,.05);}
+.mNK .opt.sel{border-color:var(--cyan);background:rgba(68,217,232,.09);color:var(--cyan);}
+.mNP .opt:hover:not(:disabled){border-color:var(--orange);background:rgba(240,128,64,.05);}
+.mNP .opt.sel{border-color:var(--orange);background:rgba(240,128,64,.09);color:var(--orange);}
+.mNT .opt:hover:not(:disabled){border-color:var(--purple);background:rgba(187,136,255,.05);}
+.mNT .opt.sel{border-color:var(--purple);background:rgba(187,136,255,.09);color:var(--purple);}
+.opt.c-reveal{border-color:var(--green)!important;background:rgba(0,255,65,.1)!important;color:var(--green)!important;}
+.opt.w-reveal{border-color:var(--red)!important;background:rgba(255,64,85,.04)!important;color:var(--dim)!important;}
+.opt:disabled{cursor:default;}
+#fb-box{border:1px solid var(--border);padding:.9rem 1.1rem;margin-bottom:1.1rem;background:var(--bg3);display:none;}
+#fb-lbl{font-size:.6rem;letter-spacing:.2em;margin-bottom:.45rem;}
+.fb-ok{color:var(--green);} .fb-err{color:var(--red);} .fb-neutral{color:var(--purple);}
+#fb-text{font-family:var(--sans);font-size:.87rem;color:var(--white);line-height:1.65;}
+#wait-msg{font-size:.68rem;color:var(--dim);margin-bottom:1.1rem;display:none;}
+#cont-btn{display:none;background:transparent;border:1px solid var(--green);color:var(--green);font-family:var(--mono);font-size:.86rem;letter-spacing:.1em;padding:.68rem 1.7rem;cursor:pointer;transition:all .2s;margin-bottom:1.8rem;}
+#cont-btn:hover{background:rgba(0,255,65,.07);box-shadow:0 0 10px rgba(0,255,65,.2);}
+#cont-btn.pulse{animation:cpulse .7s infinite;} @keyframes cpulse{50%{box-shadow:0 0 16px rgba(0,255,65,.5);}}
+#clave-bar{border-top:1px solid var(--border);padding:.5rem 1.3rem;background:rgba(12,18,16,.95);flex-shrink:0;min-height:40px;}
+#clave-lbl{font-size:.56rem;color:var(--dim);letter-spacing:.2em;margin-bottom:.3rem;}
+#clave-words{display:flex;flex-wrap:wrap;gap:.32rem;}
+.cw{font-size:.66rem;letter-spacing:.07em;padding:.1rem .44rem;border:1px solid;animation:cwpop .4s ease;}
+@keyframes cwpop{from{opacity:0;transform:translateY(5px) scale(.9);}to{opacity:1;transform:translateY(0) scale(1);}}
+.cw-ok{color:var(--green);border-color:rgba(0,255,65,.2);}
+.cw-warn{color:var(--yellow);border-color:rgba(230,192,64,.25);}
+.cw-posture{color:var(--orange);border-color:rgba(240,128,64,.25);}
+.cw-path{color:var(--purple);border-color:rgba(187,136,255,.25);}
+.cw-marco{color:var(--cyan);border-color:rgba(68,217,232,.25);}
+
+/* ── WORD POPUP ── */
+#word-popup{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:800;background:rgba(8,12,10,.7);backdrop-filter:blur(2px);}
+.wp-box{border:1px solid var(--green);background:var(--bg);padding:2rem 2.5rem;text-align:center;min-width:280px;box-shadow:0 0 40px rgba(0,255,65,.3),inset 0 0 20px rgba(0,255,65,.03);animation:wpIn .25s ease;}
+@keyframes wpIn{from{transform:scale(.9);opacity:0;}to{transform:scale(1);opacity:1;}}
+.wp-title{font-size:.62rem;color:var(--dim);letter-spacing:.25em;margin-bottom:1.2rem;}
+.wp-word-display{font-size:1.7rem;letter-spacing:.2em;color:var(--green);min-height:2.2rem;text-shadow:0 0 15px rgba(0,255,65,.5);margin-bottom:1.1rem;}
+.wp-bar-bg{width:100%;height:3px;background:var(--border);margin-bottom:.8rem;}
+.wp-bar-fill{height:100%;background:var(--green);width:0;transition:width .05s linear;}
+.wp-sub{font-size:.68rem;color:var(--dim);}
+
+/* ── TIMER ALERT ── */
+#timer-alert{position:fixed;bottom:80px;right:1rem;z-index:700;min-width:240px;font-size:.75rem;animation:slideIn .3s ease;}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+.ta-box{border:1px solid;padding:.7rem .9rem;background:var(--bg2);}
+.ta-box.ta-yellow{border-color:var(--yellow);color:var(--yellow);}
+.ta-box.ta-orange{border-color:var(--orange);color:var(--orange);animation:ta-pulse .8s infinite;} @keyframes ta-pulse{50%{opacity:.7;}}
+.ta-box.ta-red{border-color:var(--red);color:var(--red);animation:ta-pulse .4s infinite;}
+.ta-title{font-size:.6rem;letter-spacing:.18em;margin-bottom:.35rem;}
+.ta-bar{width:100%;height:4px;background:rgba(255,255,255,.1);margin:.4rem 0;}
+.ta-bar-fill{height:100%;transition:width 1s linear;}
+.ta-yellow .ta-bar-fill{background:var(--yellow);}
+.ta-orange .ta-bar-fill{background:var(--orange);}
+.ta-red .ta-bar-fill{background:var(--red);}
+
+/* ── TRANSITION OVERLAY ── */
+#trans-overlay{position:fixed;inset:0;background:var(--bg);z-index:600;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:10vw 12vw;}
+#trans-log{font-size:.82rem;line-height:2;max-width:640px;}
+.tl{opacity:0;animation:fadeIn .05s forwards;} .tl-ok{color:var(--green);} .tl-dim{color:var(--dim);} .tl-cyan{color:var(--cyan);} .tl-err{color:var(--red);}
+.trans-bar-bg{width:200px;height:6px;background:var(--border);display:inline-block;vertical-align:middle;margin-left:.5rem;}
+.trans-bar-fill{height:100%;background:var(--green);animation:tbfill .8s ease-out forwards;} @keyframes tbfill{to{width:200px;}}
+
+/* ── REG ANIMATION ── */
+#reg-overlay{position:fixed;inset:0;background:rgba(8,12,10,.85);z-index:700;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.reg-box{text-align:center;max-width:360px;}
+.reg-title{font-size:.9rem;color:var(--green);letter-spacing:.15em;margin-bottom:1rem;}
+.reg-bin{font-size:.75rem;color:var(--gdim);opacity:.7;height:2.5rem;overflow:hidden;margin-bottom:1rem;word-break:break-all;line-height:1.4;}
+.reg-bar-bg{width:240px;height:5px;background:var(--border);margin:0 auto;}
+.reg-bar-fill{height:100%;background:var(--green);width:0;animation:regfill .7s ease-out forwards;} @keyframes regfill{to{width:100%;}}
+.reg-status{font-size:.65rem;color:var(--dim);margin-top:.6rem;letter-spacing:.1em;}
+
+/* ── BIFURCATION ── */
+#bif-overlay{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:2rem;z-index:500;}
+.bif-h{font-size:1.3rem;color:var(--purple);letter-spacing:.2em;margin-bottom:.9rem;}
+.bif-path{font-size:1.7rem;color:var(--green);letter-spacing:.13em;text-shadow:0 0 20px rgba(0,255,65,.35);margin-bottom:.9rem;}
+.bif-desc{font-family:var(--sans);color:var(--white);font-size:.9rem;max-width:460px;line-height:1.7;margin-bottom:1.8rem;}
+.bif-load{font-size:.75rem;color:var(--dim);}
+
+/* ── RESULTS ── */
+#results{min-height:100vh;padding:1.6rem 1.3rem;max-width:800px;margin:0 auto;position:relative;z-index:10;}
+.res-hdr{border-bottom:1px solid var(--border);padding-bottom:1rem;margin-bottom:1.3rem;}
+.res-tag{font-size:.6rem;color:var(--dim);letter-spacing:.3em;margin-bottom:.4rem;}
+.res-title{font-size:1.5rem;color:var(--green);letter-spacing:.1em;margin-bottom:.2rem;}
+.res-org{font-size:.78rem;color:var(--dim);} .res-org span{color:var(--white);}
+.clave-full{border:1px solid var(--border);padding:1rem;margin-bottom:1.1rem;background:var(--bg3);}
+.cf-lbl{font-size:.6rem;color:var(--dim);letter-spacing:.22em;margin-bottom:.6rem;}
+.cf-words{display:flex;flex-wrap:wrap;gap:.42rem;margin-bottom:.6rem;}
+.cfw{font-size:.74rem;letter-spacing:.08em;padding:.2rem .65rem;border:1px solid;}
+.cfw-ok{color:var(--green);border-color:rgba(0,255,65,.25);}
+.cfw-warn{color:var(--yellow);border-color:rgba(230,192,64,.25);}
+.cfw-posture{color:var(--orange);border-color:rgba(240,128,64,.25);}
+.cfw-path{color:var(--purple);border-color:rgba(187,136,255,.25);}
+.cfw-marco{color:var(--cyan);border-color:rgba(68,217,232,.3);}
+.cf-score{font-size:.7rem;color:var(--dim);} .cf-score span{color:var(--white);}
+.profile-box{border:1px solid var(--gdim);padding:1.3rem;margin-bottom:1.2rem;background:rgba(0,255,65,.02);position:relative;}
+.profile-box::before{content:'// PERFIL INSTITUCIONAL IDENTIFICADO';position:absolute;top:-.5rem;left:1rem;background:var(--bg);padding:0 .4rem;font-size:.58rem;color:var(--gdim);letter-spacing:.14em;}
+.p-name{font-size:1.28rem;color:var(--green);letter-spacing:.1em;margin-bottom:.2rem;}
+.p-tag{font-family:var(--sans);font-size:.86rem;color:var(--dim);font-style:italic;margin-bottom:1rem;}
+.p-sec-lbl{font-size:.58rem;color:var(--dim);letter-spacing:.2em;margin-bottom:.35rem;}
+.p-sec-txt{font-family:var(--sans);font-size:.87rem;color:var(--white);line-height:1.67;margin-bottom:.9rem;}
+.fw-box{border:1px solid var(--border);padding:1rem;margin-bottom:1.2rem;background:var(--bg3);}
+.fw-lbl{font-size:.6rem;color:var(--dim);letter-spacing:.22em;margin-bottom:.7rem;}
+.fw-item{padding:.45rem 0;border-bottom:1px solid var(--border);line-height:1.55;}
+.fw-item:last-child{border-bottom:none;}
+.fw-src{display:block;font-size:.68rem;color:var(--cyan);margin-bottom:.18rem;}
+.fw-txt{font-family:var(--sans);font-size:.86rem;color:var(--white);}
+.btn-dl{background:transparent;border:1px solid var(--green);color:var(--green);font-family:var(--mono);font-size:.86rem;letter-spacing:.1em;padding:.75rem 1.8rem;cursor:pointer;transition:all .2s;display:inline-block;margin-bottom:.55rem;}
+.btn-dl:hover{background:rgba(0,255,65,.08);box-shadow:0 0 14px rgba(0,255,65,.25);}
+.dl-note{font-size:.66rem;color:var(--dim);}
+
+/* ── FORCE ANSWER FLASH ── */
+@keyframes forceFlash{0%,100%{background:rgba(255,64,85,.12);}50%{background:rgba(255,64,85,.25);}}
+.force-flash{animation:forceFlash .4s infinite;}
+
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--bg2);}
+::-webkit-scrollbar-thumb{background:var(--border);}
+@media(max-width:560px){.s-title{font-size:1.9rem;}#topbar{font-size:.6rem;}.opt{font-size:.82rem;}}
+</style>
+</head>
+<body>
+
+<canvas id="matrix-bg"></canvas>
+
+<!-- ══ WORD POPUP ══ -->
+<div id="word-popup" class="hidden">
+  <div class="wp-box">
+    <div class="wp-title">// FRAGMENTO CAPTURADO — CLAVE ÉTICA</div>
+    <div class="wp-word-display" id="wp-display"></div>
+    <div class="wp-bar-bg"><div class="wp-bar-fill" id="wp-bar"></div></div>
+    <div class="wp-sub" id="wp-sub">Añadiendo al protocolo...</div>
+  </div>
+</div>
+
+<!-- ══ TIMER ALERT ══ -->
+<div id="timer-alert" class="hidden">
+  <div class="ta-box" id="ta-box">
+    <div class="ta-title" id="ta-title">⚠ SISTEMA — ADVERTENCIA</div>
+    <div id="ta-msg">Selecciona una respuesta</div>
+    <div class="ta-bar"><div class="ta-bar-fill" id="ta-bar-fill"></div></div>
+  </div>
+</div>
+
+<!-- ══ TRANSITION OVERLAY ══ -->
+<div id="trans-overlay" class="hidden">
+  <div id="trans-log"></div>
+</div>
+
+<!-- ══ REGISTRATION ANIMATION ══ -->
+<div id="reg-overlay" class="hidden">
+  <div class="reg-box">
+    <div class="reg-title">PROCESANDO RESPUESTA...</div>
+    <div class="reg-bin" id="reg-bin"></div>
+    <div class="reg-bar-bg"><div class="reg-bar-fill"></div></div>
+    <div class="reg-status" id="reg-status">Verificando con protocolo ético...</div>
+  </div>
+</div>
+
+<!-- ══ BOOT ══ -->
+<div id="boot"><div id="boot-log"></div></div>
+
+<!-- ══ START ══ -->
+<div id="start" class="hidden">
+  <div class="s-kicker">// RED LATINOAMERICANA DE ÉTICA DIGITAL — PROTOCOLO CLASIFICADO //</div>
+  <div class="s-title">MISIÓN UMBRAL</div>
+  <div class="s-sub">PROTOCOLO DE GOBERNANZA ÉTICA DE IA · v1.0</div>
+  <div class="brief">
+    <p>Su organización ha sido convocada para construir el primer protocolo de gobernanza de inteligencia artificial con perspectiva guatemalteca. Nueve módulos de evaluación y posicionamiento determinarán su Perfil Institucional y su Clave Ética única. Duración máxima: 30 minutos. Trabajen en equipo. Dialoguen antes de decidir.</p>
+  </div>
+  <div class="inp-group">
+    <label class="inp-lbl" for="org-input">// IDENTIFICAR ORGANIZACIÓN:</label>
+    <input type="text" id="org-input" class="t-input" placeholder="Nombre de su ONG o equipo..." maxlength="50" autocomplete="off">
+  </div>
+  <button class="btn-start" id="start-btn" disabled onclick="startGame()">INICIAR MISIÓN <span class="cur">█</span></button>
+</div>
+
+<!-- ══ GAME ══ -->
+<div id="game" class="hidden">
+  <div id="topbar">
+    <span id="tb-org">ORG: —</span>
+    <span id="tb-mod">MÓDULO — / 9</span>
+    <div><span style="color:var(--dim);font-size:.62rem;">TIEMPO: </span><span id="tb-timer" class="t-green">—:——</span></div>
+  </div>
+  <div id="xferbar">
+    <span>TRANSFERENCIA:</span><span id="xfer-name">—</span>
+    <div id="xfer-bg"><div id="xfer-fill"></div></div>
+    <span id="xfer-pct">—</span><span id="xfer-stat">INICIANDO...</span>
+  </div>
+  <div id="content">
+    <div id="mod-path-el" class="mod-path"></div>
+    <div id="marco-box"><div id="marco-text"></div></div>
+    <div id="sit-box">
+      <div class="sit-label">// SITUACIÓN</div>
+      <div id="sit-text"></div>
+      <div id="q-text"></div>
+    </div>
+    <div id="opts"></div>
+    <div id="wait-msg">▸ Selecciona una opción para activar el avance anticipado.</div>
+    <div id="fb-box">
+      <div id="fb-lbl"></div>
+      <div id="fb-text"></div>
+    </div>
+    <button id="cont-btn" onclick="continueGame()">REGISTRAR RESPUESTA Y CONTINUAR →</button>
+  </div>
+  <div id="clave-bar">
+    <div id="clave-lbl">// CLAVE ÉTICA — PROTOCOLO EN CONSTRUCCIÓN</div>
+    <div id="clave-words"></div>
+  </div>
+</div>
+
+<!-- ══ BIFURCATION ══ -->
+<div id="bif-overlay" class="hidden">
+  <div class="bif-h">⚡ BIFURCACIÓN DETECTADA</div>
+  <div class="bif-path" id="bif-pname">—</div>
+  <div class="bif-desc" id="bif-desc">—</div>
+  <div class="bif-load" id="bif-load">Reconfigurando módulos 5–8...</div>
+</div>
+
+<!-- ══ RESULTS ══ -->
+<div id="results" class="hidden">
+  <div class="res-hdr">
+    <div class="res-tag">// MISIÓN UMBRAL COMPLETADA — INFORME INSTITUCIONAL</div>
+    <div class="res-title">PERFIL INSTITUCIONAL</div>
+    <div class="res-org">ORGANIZACIÓN: <span id="r-org">—</span></div>
+  </div>
+  <div class="clave-full">
+    <div class="cf-lbl">// CLAVE ÉTICA COMPLETA — 9 FRAGMENTOS + MARCO DOMINANTE</div>
+    <div class="cf-words" id="r-clave"></div>
+    <div class="cf-score">Dominio conceptual: <span id="r-ks">—</span> · Ruta: <span id="r-ruta">—</span></div>
+  </div>
+  <div class="profile-box">
+    <div class="p-name" id="r-pname">—</div>
+    <div class="p-tag" id="r-ptag">—</div>
+    <div class="p-sec-lbl">// DESCRIPCIÓN</div><div class="p-sec-txt" id="r-pdesc">—</div>
+    <div class="p-sec-lbl">// FORTALEZAS IDENTIFICADAS</div><div class="p-sec-txt" id="r-pstr">—</div>
+    <div class="p-sec-lbl">// ÁREAS A DESARROLLAR</div><div class="p-sec-txt" id="r-pdev">—</div>
+  </div>
+  <div class="fw-box">
+    <div class="fw-lbl">// MARCOS REFERENCIALES RECOMENDADOS PARA SU SIGUIENTE PASO</div>
+    <div id="r-fws"></div>
+  </div>
+  <div>
+    <button class="btn-dl" onclick="generatePDF()">⬇ DESCARGAR INFORME DE MISIÓN (PDF)</button>
+    <div class="dl-note">El PDF contiene la Clave Ética, el Perfil Institucional y los marcos recomendados, listos para la plenaria.</div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+// ══════════════════════════════════════════
+// MATRIX RAIN
+// ══════════════════════════════════════════
+(function(){
+  const cv=document.getElementById('matrix-bg');
+  const ctx=cv.getContext('2d');
+  const chars='01アウエカキスセタテナニハヒフヘホマミムメモ01010011101101';
+  const fs=13; let cols,drops;
+  function resize(){
+    cv.width=window.innerWidth; cv.height=window.innerHeight;
+    cols=Math.floor(cv.width/fs); drops=new Array(cols).fill(0);
+  }
+  resize(); window.addEventListener('resize',resize);
+  function draw(){
+    ctx.fillStyle='rgba(8,12,10,0.065)';
+    ctx.fillRect(0,0,cv.width,cv.height);
+    drops.forEach((y,i)=>{
+      const c=chars[Math.floor(Math.random()*chars.length)];
+      const alpha=Math.random()>.8?1:.4;
+      ctx.fillStyle=`rgba(0,255,65,${alpha})`;
+      ctx.font=fs+'px Share Tech Mono';
+      ctx.fillText(c,i*fs,y*fs);
+      if(y*fs>cv.height&&Math.random()>.975) drops[i]=0;
+      drops[i]++;
+    });
+  }
+  setInterval(draw,55);
+})();
+
+// ══════════════════════════════════════════
+// CONTENT DATA
+// ══════════════════════════════════════════
+const MD={
+  M1:{id:'M1',seq:1,type:'NP',
+    file:'primera_respuesta_inst.dat',time:180,
+    path:'/mision/modulo_01/posicionamiento/',
+    marco:'La UNESCO (2021), en su Recomendación sobre la Ética de la Inteligencia Artificial, establece que antes de adoptar cualquier sistema de IA, las organizaciones deben preguntarse no solo si la herramienta funciona, sino para quién funciona, quién la diseñó y qué valores están codificados en ella. Esta pregunta previa es, en sí misma, un acto ético.',
+    sit:'La ONG Tejidos Educativos trabaja con tres centros de educación media: uno en Villa Nueva —zona periurbana marcada por pobreza estructural, presencia de pandillas, hacinamiento habitacional y alta tasa de migración interna de familias que llegaron del altiplano huyendo de la violencia o la falta de oportunidades— y dos rurales en comunidades de Sololá con población mayoritariamente kaqchikel. Una empresa tecnológica ofrece una plataforma de IA para "personalizar el aprendizaje" de forma gratuita durante dos años. El equipo directivo les pide decidir cómo proceder.',
+    q:'¿Cuál es la primera pregunta que plantea su equipo?',
+    opts:[
+      {t:'Si la plataforma ha demostrado mejoras en resultados académicos medibles en contextos similares al suyo.',w:'IMPACTO',z:'A'},
+      {t:'Quién tendrá acceso a los datos de sus estudiantes y cómo serán utilizados.',w:'PRIVACIDAD',z:'B'},
+      {t:'Si las familias, docentes y comunidades quieren esta herramienta en sus aulas.',w:'COMUNIDAD',z:'C'},
+      {t:'Qué intereses tiene la empresa detrás de una oferta "gratuita" de esta magnitud.',w:'PODER',z:'D'}
+    ],
+    fb:{0:'Una pregunta legítima. Evaluar impacto es fundamental. El reto es definir qué contamos como "mejora" en contextos donde los estudiantes enfrentan inseguridad, migración reciente o barreras lingüísticas. La evidencia de otros contextos puede no transferirse.',1:'Una pregunta crucial. Los datos de menores en plataformas educativas son activos sensibles, especialmente cuando las familias ya enfrentan vulnerabilidad institucional — desconfianza del Estado, experiencias de violencia, precariedad.',2:'Una pregunta que pone a las personas en el centro. La pertinencia de una herramienta no se determina desde arriba: requiere validación comunitaria real, tanto en comunidades rurales kaqchikeles como en barrios periurbanos de Villa Nueva.',3:'Una pregunta políticamente lúcida. En contextos de exclusión —rural o urbana— la dependencia tecnológica puede reproducir relaciones de poder ya existentes. Identificar los intereses detrás de una oferta es parte de la gobernanza ética.'},
+    wtype:'posture',correct:null},
+
+  M2:{id:'M2',seq:2,type:'NK',
+    file:'sesgo_algoritmico.exe',time:150,
+    path:'/mision/modulo_02/analisis/',
+    marco:'El sesgo algorítmico indica que los sistemas de IA no son neutrales: reproducen los patrones presentes en los datos con los que fueron entrenados. Si esos datos reflejan desigualdades históricas —de clase, etnia, género o geografía— el sistema las amplifica, frecuentemente sin que los usuarios lo perciban.',
+    sit:'La empresa asegura que su plataforma "aprende de cada estudiante de forma objetiva, sin prejuicios". Un docente de una comunidad rural de Sololá pregunta: "¿Eso significa que entiende a mis estudiantes kaqchikeles igual que a estudiantes de clase media en la Ciudad?" Una coordinadora del centro de Villa Nueva añade: "¿Y a los estudiantes que no tienen internet en casa y solo conectan desde el aula?"',
+    q:'¿Cuál de estas respuestas es más precisa técnicamente?',
+    opts:[
+      {t:'Sí — la IA procesa datos sin importar el origen cultural, lingüístico o socioeconómico del estudiante.',w:'SESGO',z:null,correct:false},
+      {t:'Depende — si fue entrenada con datos de contextos distintos, tendrá puntos ciegos significativos para estudiantes indígenas, migrantes o en situación de pobreza.',w:'SESGO',z:null,correct:true},
+      {t:'No importa el origen de los datos — lo relevante son los resultados obtenidos en el piloto.',w:'SESGO',z:null,correct:false},
+      {t:'Ninguna IA puede entender diferencias culturales o socioeconómicas, por lo que es igualmente inadecuada para todos.',w:'SESGO',z:null,correct:false}
+    ],
+    fb:{correct:'Correcto. Los modelos de IA aprenden de datos históricos. Si esos datos provienen mayoritariamente de contextos con conectividad estable, hispanohablantes o del Norte Global, el modelo tendrá sesgos estructurales. Esto afecta desproporcionalmente a estudiantes indígenas rurales, pero también a jóvenes urbanos en situación de pobreza con acceso intermitente a tecnología.',0:'La "objetividad" depende completamente de los datos de entrenamiento. Si esos datos no incluyen contextos como comunidades kaqchikeles de Sololá o barrios de Villa Nueva con conectividad precaria, el modelo simplemente los desconoce.',2:'El piloto en un contexto no valida el desempeño en otro. Los resultados mixtos suelen ser evidencia de sesgo, no de un problema del estudiante.',3:'Esta afirmación también es una simplificación. Las IA pueden ser más o menos adecuadas dependiendo de cómo fueron diseñadas y con qué datos fueron entrenadas.'},
+    wtype:'knowledge',correct:1},
+
+  M3:{id:'M3',seq:3,type:'NP',
+    file:'pertinencia_linguistica_cultural.dat',time:120,
+    path:'/mision/modulo_03/posicionamiento/',
+    marco:'Desde la interculturalidad crítica, la pregunta no es solo si una herramienta "funciona" en contextos indígenas o vulnerables, sino si reconoce esos contextos como fuentes válidas de conocimiento, o si los trata como datos a procesar bajo parámetros culturales externos. La lengua es un indicador clave: una herramienta que no opera en los idiomas propios de las comunidades no es técnicamente neutral — es estructuralmente excluyente.',
+    sit:'La plataforma opera únicamente en español. En los centros rurales de Sololá, el 70% de los estudiantes tiene el kaqchikel como primera lengua. En el centro de Villa Nueva, varios estudiantes provienen de familias que migraron desde el altiplano y enfrentan una doble exclusión: no son reconocidos culturalmente en el entorno urbano, pero tampoco cuentan con el apoyo lingüístico que tendrían en sus comunidades de origen. Para ambos grupos, el español escolar puede ser una segunda lengua en proceso de adquisición.',
+    q:'¿Cuál es la postura de su ONG ante esta limitación?',
+    opts:[
+      {t:'Es una limitación aceptable — los estudiantes necesitan fortalecer el español y la plataforma puede contribuir a eso.',w:'INTEGRACIÓN',z:'A'},
+      {t:'Documentamos la limitación como criterio de evaluación e incidencia y la incluimos en el informe de seguimiento.',w:'DOCUMENTACIÓN',z:'B'},
+      {t:'Consultamos con docentes bilingües y referentes comunitarios antes de tomar cualquier decisión de adopción.',w:'CONSULTA',z:'C'},
+      {t:'Esta limitación revela que la herramienta no fue diseñada para comunidades como las nuestras — urbanas o rurales — y es un criterio de exclusión.',w:'TERRITORIO',z:'D'}
+    ],
+    fb:{0:'Esta postura puede tener justificación pedagógica, pero invisibiliza el costo que impone: aprender con una herramienta en la segunda lengua genera una carga adicional que estudiantes de clases medias hispanohablantes no enfrentan.',1:'Una postura técnica y documentada. El riesgo es que la documentación no se traduzca en consecuencias reales para la decisión de adopción, especialmente si hay presión institucional para aceptar la herramienta.',2:'Una postura que activa la consulta como mecanismo de gobernanza. Conecta con el principio de consulta previa y libre e informada, relevante tanto para comunidades indígenas como para familias migrantes urbanas.',3:'Una postura que identifica la limitación lingüística como exclusión estructural, no como un defecto menor. Aplica en Sololá, pero también en las escuelas de Villa Nueva donde los hijos de migrantes internos cargan con una identidad culturalmente negada.'},
+    wtype:'posture',correct:null},
+
+  M4:{id:'M4',seq:4,type:'NT',
+    file:'decision_critica_datos.bin',time:180,
+    path:'/mision/modulo_04/bifurcacion/',
+    marco:'El PNUD distingue entre gobernanza técnica —auditorías, estándares, rendición de cuentas institucional— y gobernanza participativa —donde las comunidades son actoras activas en las decisiones sobre tecnologías que las afectan—. Ambas son necesarias, pero las organizaciones suelen tener mayor claridad sobre una que sobre otra. Su respuesta determinará el tramo siguiente de la misión.',
+    sit:'Tras dos meses de piloto, la plataforma muestra mejoras en comprensión lectora en Villa Nueva, pero resultados mixtos en los centros rurales de Sololá. La empresa propone "ajustar el algoritmo" con más datos de comportamiento de los estudiantes rurales para mejorar el modelo. Algunos docentes rurales señalan que el algoritmo también parece identificar como "distracción" patrones de aprendizaje propios de su cultura —pausas de reflexión, ritmos distintos, interacción colectiva.',
+    q:'¿Cuál es la postura de su ONG ante esta propuesta?',
+    opts:[
+      {t:'Solicitamos un informe técnico independiente que evalúe el impacto diferenciado antes de autorizar cualquier ajuste.',w:'GOBERNANZA',z:'A',path:'G'},
+      {t:'Establecemos una cláusula contractual sobre uso de datos antes de permitir que se utilicen para entrenar el modelo.',w:'GOBERNANZA',z:'B',path:'G'},
+      {t:'Convocamos a familias y docentes de los centros rurales para decidir juntos si quieren que sus datos se usen para este fin.',w:'PARTICIPACIÓN',z:'C',path:'C'},
+      {t:'Rechazamos la propuesta — los datos de nuestros estudiantes no son insumo para mejorar un producto comercial.',w:'PARTICIPACIÓN',z:'D',path:'C'}
+    ],
+    fb:{0:'Una respuesta orientada a la gobernanza técnica: exige evidencia independiente antes de autorizar. Es un estándar razonable que protege a la organización y a los estudiantes.',1:'Una respuesta que establece un marco legal previo a cualquier uso de datos. Es práctica fundamental de protección de datos.',2:'Una respuesta que activa la gobernanza participativa: las comunidades deciden sobre sus propios datos. Conecta con el principio de consulta previa.',3:'Una respuesta que establece un límite ético claro: los datos de los estudiantes no son un recurso disponible para optimización comercial.'},
+    wtype:'path',correct:null,isBif:true},
+
+  M5G:{id:'M5G',seq:5,type:'NK',
+    file:'consentimiento_datos_menores.exe',time:150,
+    path:'/mision/camino_gobernanza/modulo_05/analisis/',
+    marco:'Los marcos internacionales de empresas y derechos humanos establecen que las empresas deben respetar la privacidad como derecho humano. Los datos de menores requieren consentimiento informado de sus tutores. Una complicación adicional: en contextos de alta vulnerabilidad —pobreza, migración, violencia— las familias pueden firmar formularios sin comprender realmente sus implicaciones, especialmente cuando la herramienta se presenta como un beneficio.',
+    sit:'Los términos de servicio incluyen la cláusula: "Los datos de uso anonimizados podrán ser utilizados para mejorar nuestros productos y servicios." En Villa Nueva, la mayoría de familias firmó el formulario de consentimiento en cinco minutos durante una reunión de padres. En los centros rurales, el formulario estaba solo en español. La directora pregunta si deben preocuparse.',
+    q:'¿Cuál de estas afirmaciones sobre esta cláusula es más precisa?',
+    opts:[
+      {t:'No es relevante — si los datos están anonimizados, no existe riesgo de identificación de los estudiantes.',w:'CONSENTIMIENTO',z:null,correct:false},
+      {t:'Puede ser problemática — los datos de comportamiento educativo pueden re-identificarse al combinarse con otros datos disponibles.',w:'CONSENTIMIENTO',z:null,correct:true},
+      {t:'Es una práctica estándar aceptable en el sector tecnológico educativo y no requiere análisis adicional.',w:'CONSENTIMIENTO',z:null,correct:false},
+      {t:'Esta cláusula impide legalmente que la empresa monetice los datos de los estudiantes.',w:'CONSENTIMIENTO',z:null,correct:false}
+    ],
+    fb:{correct:'Correcto. La "anonimización" no garantiza privacidad absoluta. Los datos educativos son especialmente ricos en información identificable. Agravante: en contextos de vulnerabilidad, los datos pueden revelar no solo patrones de aprendizaje sino también situaciones de riesgo —violencia doméstica, trabajo infantil, irregularidades migratorias— que las familias no habrían compartido conscientemente.',0:'La anonimización tiene limitaciones técnicas importantes. En grupos pequeños —como una comunidad rural— la re-identificación puede ser sencilla con apenas unos pocos puntos de datos de comportamiento.',2:'Que sea práctica común no la hace aceptable. Muchas prácticas del sector tecnológico están bajo creciente escrutinio precisamente porque afectan desproporcionalmente a poblaciones en situación de vulnerabilidad.',3:'La cláusula tiene el efecto contrario: al decir "podrán utilizarse", la empresa se reserva el derecho. No los prohíbe — los autoriza.'},
+    wtype:'knowledge',correct:1},
+
+  M6G:{id:'M6G',seq:6,type:'NP',
+    file:'rendicion_cuentas_ia.dat',time:120,
+    path:'/mision/camino_gobernanza/modulo_06/posicionamiento/',
+    marco:'El principio de responsabilidad establece que debe ser posible identificar quién toma decisiones en un sistema de IA y ante quién responde. Las ONGs que adoptan tecnologías de terceros deben definir explícitamente su propio rol en esa cadena. En contextos de alta vulnerabilidad, esta responsabilidad es más urgente: las familias tienen menor capacidad de exigir cuentas a una empresa tecnológica externa.',
+    sit:'Una estudiante de 15 años de Villa Nueva denuncia que la plataforma la calificó con un nivel de comprensión muy bajo. Su docente cree que el algoritmo no supo interpretar su estilo de escritura, influenciado por el español popular del barrio. La familia exige una explicación. La empresa responde que "el algoritmo no discrimina" y declina dar más información.',
+    q:'¿Ante quién debería responder su ONG y de qué manera?',
+    opts:[
+      {t:'La empresa es la responsable directa — deben exigirles una auditoría del resultado algorítmico.',w:'EMPRESA',z:'A'},
+      {t:'La ONG adoptó la herramienta y debe asumir la responsabilidad ante la familia, independientemente de la empresa.',w:'ONG',z:'B'},
+      {t:'El docente debe revisar la evaluación manualmente y su criterio debe primar sobre el del algoritmo.',w:'DOCENTE',z:'C'},
+      {t:'Se necesita un mecanismo conjunto: ONG, empresa y docente deben tener protocolos definidos antes de que ocurran situaciones como esta.',w:'MECANISMO',z:'D'}
+    ],
+    fb:{0:'Es correcto exigir rendición de cuentas a la empresa, pero si la ONG adoptó la herramienta, también tiene responsabilidad directa ante las familias. En contextos como Villa Nueva, donde la desconfianza institucional es alta, delegar toda la responsabilidad a la empresa erosiona la confianza que la ONG ha construido.',1:'Esta postura reconoce que la ONG es el actor con relación directa con la comunidad. Es la postura que más fortalece la confianza institucional, especialmente con familias que ya han sido defraudadas por sistemas formales.',2:'El criterio docente es fundamental. Sin embargo, si no tiene autoridad formal para anular el resultado del sistema, esta respuesta queda incompleta institucionalmente.',3:'La respuesta más sistémica. Antes de adoptar cualquier herramienta, deben existir mecanismos de apelación claros, accesibles incluso para familias con baja escolaridad o en situación irregular.'},
+    wtype:'posture',correct:null},
+
+  M7G:{id:'M7G',seq:7,type:'NT',
+    file:'vigilancia_vs_cuidado.bin',time:150,
+    path:'/mision/camino_gobernanza/modulo_07/tension/',
+    marco:'Desde la ética del cuidado, las relaciones de cuidado requieren información, pero esa información no puede convertirse en vigilancia. La diferencia no es técnica: es ética. En contextos de exclusión urbana, esta tensión es especialmente aguda: la vigilancia tecnológica puede reproducir dinámicas de control ya existentes sobre comunidades marginalizadas.',
+    sit:'La empresa ofrece activar un módulo que usa la cámara del dispositivo para detectar "patrones de distracción" en tiempo real. En Villa Nueva, muchos estudiantes comparten dispositivos con hermanos o estudian en espacios comunes donde habitan varias familias. En Sololá, las cámaras capturarían entornos domésticos de familias kaqchikeles. La activación requiere autorización de la ONG, no de los estudiantes ni las familias.',
+    q:'¿Cuál es la postura de su organización?',
+    opts:[
+      {t:'Lo activamos — si mejora los resultados, el beneficio pedagógico justifica el uso de la cámara.',w:'VIGILANCIA',z:'A'},
+      {t:'Lo rechazamos — activar cámaras en hogares sin consentimiento explícito de estudiantes y familias es inaceptable.',w:'CUIDADO',z:'B'},
+      {t:'Lo consideramos solo si hay consentimiento informado real de cada familia y garantía de que los datos de imagen no se almacenan.',w:'LÍMITE',z:'C'},
+      {t:'Necesitamos una política institucional sobre vigilancia digital antes de poder decidir sobre cualquier módulo de este tipo.',w:'REGULACIÓN',z:'D'}
+    ],
+    fb:{0:'Esta postura prioriza la efectividad sobre la privacidad. En contextos como Villa Nueva —donde las comunidades tienen experiencia de vigilancia por pandillas, fuerzas de seguridad o instituciones— introducir una cámara sin consentimiento real puede reproducir dinámicas de control muy sensibles.',1:'Una postura que establece un límite claro basado en derechos. La privacidad de menores está reconocida por la Convención sobre los Derechos del Niño, ratificada por Guatemala.',2:'Una postura que no rechaza la tecnología pero establece condiciones éticas mínimas. La clave es que el consentimiento sea genuinamente informado — no un formulario técnico entregado en una reunión de diez minutos.',3:'Una postura institucional madura. Las políticas deben preceder a los casos, no responder a ellos.'},
+    wtype:'posture',correct:null},
+
+  M8G:{id:'M8G',seq:8,type:'NP',
+    file:'madurez_gobernanza_digital.dat',time:120,
+    path:'/mision/camino_gobernanza/modulo_08/posicionamiento/',
+    marco:'El PNUD identifica cuatro niveles de madurez en gobernanza digital para organizaciones de sociedad civil: reactivo, preventivo, estratégico y transformador. Para ONGs que trabajan en contextos de alta vulnerabilidad, avanzar en estos niveles no es un lujo institucional — es una condición para proteger a las comunidades de los riesgos que introduce la tecnología.',
+    sit:'Al finalizar esta sección, su equipo reflexiona honestamente sobre dónde se encuentra su organización en términos de gobernanza de tecnología e IA.',
+    q:'¿En cuál de estos niveles se reconoce actualmente su organización?',
+    opts:[
+      {t:'Reactivo — respondemos a los problemas tecnológicos cuando surgen, sin políticas previas definidas.',w:'REACTIVO',z:'A'},
+      {t:'Preventivo — tenemos algunos protocolos, pero nos falta sistematizarlos en una política institucional formal.',w:'PREVENTIVO',z:'B'},
+      {t:'Estratégico — nuestras decisiones tecnológicas están alineadas con nuestra misión y tenemos marcos de evaluación.',w:'ESTRATÉGICO',z:'C'},
+      {t:'Transformador — usamos nuestra experiencia para incidir en estándares del sector y en políticas públicas.',w:'TRANSFORMADOR',z:'D'}
+    ],
+    fb:{0:'Reconocerlo es el primer paso. La mayoría de ONGs en Guatemala operan en este nivel. El siguiente inmediato: tres preguntas mínimas que cualquier herramienta tecnológica debe responder antes de adoptarse.',1:'Un nivel honesto y común. Los protocolos existen pero están dispersos. El paso siguiente es consolidarlos en un documento que todo el equipo conozca.',2:'Un nivel sólido. El desafío es mantener ese alineamiento cuando hay presión de donantes o tendencias del sector para adoptar herramientas sin el proceso habitual de evaluación.',3:'Un nivel que pocas ONGs alcanzan. Si su organización está aquí, tiene la responsabilidad de documentar y compartir sus marcos con otras organizaciones.'},
+    wtype:'posture',correct:null},
+
+  M5C:{id:'M5C',seq:5,type:'NK',
+    file:'colonialidad_datos_educativos.exe',time:150,
+    path:'/mision/camino_comunidad/modulo_05/analisis/',
+    marco:'La colonialidad del saber describe la imposición de ciertos sistemas de conocimiento como universales, mientras se subordinan o invisibilizan otros. En la IA educativa, esto significa que los modelos entrenados en el Norte Global asumen categorías —rendimiento, atención, éxito— que no son universales ni culturalmente neutras. Esto afecta a comunidades indígenas rurales, pero también a comunidades urbanas marginalizadas cuyas formas de aprendizaje y comunicación quedan fuera de los datos de entrenamiento.',
+    sit:'Una investigadora guatemalteca señala que la plataforma evalúa el "éxito educativo" usando indicadores diseñados para sistemas escolares europeos y norteamericanos: velocidad de respuesta individual, retención en formato de opción múltiple y tiempo de interacción con contenido en pantalla. Varios estudiantes de Villa Nueva que trabajan por la tarde obtienen puntajes bajos porque se conectan tarde y con menos concentración; los docentes dicen que su rendimiento real es diferente.',
+    q:'¿Cuál de estas afirmaciones es más precisa sobre el uso de esos indicadores?',
+    opts:[
+      {t:'Los indicadores técnicos de aprendizaje son universales — reflejan cómo funciona el cerebro humano, no una cultura específica.',w:'COLONIALIDAD',z:null,correct:false},
+      {t:'Los indicadores pueden adaptarse al contexto local con ajustes técnicos en los parámetros del algoritmo.',w:'COLONIALIDAD',z:null,correct:false},
+      {t:'La definición de "éxito educativo" refleja valores y supuestos culturales específicos — usarlos en contextos de exclusión, rural o urbana, no es neutro.',w:'COLONIALIDAD',z:null,correct:true},
+      {t:'Los indicadores son técnicamente neutros, aunque su interpretación puede variar culturalmente.',w:'COLONIALIDAD',z:null,correct:false}
+    ],
+    fb:{correct:'Correcto. Los indicadores de aprendizaje son construcciones sociales que reflejan qué valora una cultura como conocimiento. La velocidad individual privilegia la cognición competitiva; el formato de opción múltiple asume que el conocimiento es discreto y unívoco. Esto es problemático para comunidades mayas con aprendizaje oral y colectivo, pero también para jóvenes urbanos en situación de trabajo infantil o precariedad que no encajan en el ritmo asumido.',0:'Los indicadores de éxito educativo son construcciones culturales, no biológicas. Elegir qué medir y cómo ya es una decisión con consecuencias reales para quienes no se ajustan al modelo.',1:'Los ajustes técnicos no cambian el marco conceptual subyacente. Si el modelo fue entrenado para optimizar ciertos tipos de respuesta, cambiar parámetros no cambia qué se considera aprendizaje exitoso.',3:'La separación entre técnico y cultural es precisamente el problema. La elección de qué medir ya es una decisión cultural con consecuencias reales.'},
+    wtype:'knowledge',correct:2},
+
+  M6C:{id:'M6C',seq:6,type:'NP',
+    file:'buen_vivir_tecnologia.dat',time:120,
+    path:'/mision/camino_comunidad/modulo_06/posicionamiento/',
+    marco:'El Buen Vivir o Sumak Kawsay no rechaza la tecnología, pero la subordina a una pregunta fundamental: ¿contribuye al florecimiento de la comunidad como comunidad? No como individuos optimizados, sino como tejido relacional. Esta pregunta es relevante tanto en comunidades rurales kaqchikeles como en barrios periurbanos donde la cohesión comunitaria es también un recurso vital de sobrevivencia frente a la violencia y la exclusión.',
+    sit:'Su ONG está revisando sus criterios internos para evaluar herramientas tecnológicas. El equipo debate cuál debería ser el criterio principal para determinar si una tecnología es "buena" para las comunidades con las que trabaja, tanto en Sololá como en Villa Nueva.',
+    q:'¿Cuál sería el criterio principal de su organización?',
+    opts:[
+      {t:'Que demuestre mejora en métricas medibles: comprensión lectora, resolución de problemas, resultados en evaluaciones.',w:'MÉTRICAS',z:'A'},
+      {t:'Que fortalezca las relaciones entre docentes, estudiantes y familias, sin reemplazarlas ni excesivamente mediarlas.',w:'RELACIONES',z:'B'},
+      {t:'Que sea accesible en los idiomas y registros culturales de las comunidades y que refuerce su uso, no que los desplace.',w:'LENGUA',z:'C'},
+      {t:'Que la comunidad haya participado en decidir si quiere esa tecnología y para qué, tanto en contextos rurales como urbanos.',w:'TEJIDO',z:'D'}
+    ],
+    fb:{0:'Un criterio legítimo. El riesgo es que las métricas disponibles fueron diseñadas fuera del contexto guatemalteco y optimizar para ellas puede desplazar formas de aprendizaje valiosas pero no medibles con esos instrumentos.',1:'Un criterio que prioriza los vínculos humanos sobre la eficiencia tecnológica. En Villa Nueva, donde la violencia fragmenta el tejido social, y en Sololá, donde la relacionalidad es central, esto tiene un significado muy concreto.',2:'Un criterio que pone la soberanía lingüística y cultural en el centro. Aplica en Sololá, pero también en Villa Nueva donde el español popular del barrio puede ser visto como deficiente por los sistemas de evaluación.',3:'El criterio más coherente con el principio de consulta y el Buen Vivir. La tecnología no es buena o mala en abstracto — es buena o mala en relación con lo que la comunidad quiere para sí misma.'},
+    wtype:'posture',correct:null},
+
+  M7C:{id:'M7C',seq:7,type:'NT',
+    file:'autonomia_vs_urgencia.bin',time:150,
+    path:'/mision/camino_comunidad/modulo_07/tension/',
+    marco:'El concepto de tecnología apropiada sostiene que la tecnología adecuada para una comunidad no es la más avanzada, sino la que puede ser comprendida, mantenida y modificada por quienes la usan. Las experiencias de redes comunitarias en América Latina muestran que cuando las comunidades controlan su infraestructura digital, los usos son más pertinentes — pero el proceso requiere tiempo y recursos que muchas organizaciones no tienen.',
+    sit:'Docentes y referentes de los centros proponen rechazar la plataforma externa y construir recursos digitales propios: materiales en kaqchikel, relatos de vida de jóvenes migrantes de Villa Nueva, módulos sobre economía informal y trabajo comunitario. El proceso tomaría 18 meses. Los recursos son limitados y el donante principal espera resultados cuantificables en 12 meses.',
+    q:'¿Cuál es la postura de su organización ante esta propuesta?',
+    opts:[
+      {t:'Apoyamos el proceso propio — la autonomía tiene más valor a largo plazo que una solución rápida con herramientas externas.',w:'AUTONOMÍA',z:'A'},
+      {t:'No es viable ahora — la urgencia de los resultados y la realidad de los recursos imponen adoptar la herramienta disponible.',w:'URGENCIA',z:'B'},
+      {t:'Adoptamos la herramienta como solución temporal mientras construimos capacidad propia, con una hoja de ruta de transición clara.',w:'HIBRIDACIÓN',z:'C'},
+      {t:'Documentamos la propuesta y la incluimos en la siguiente solicitud de fondos como proyecto prioritario.',w:'INCIDENCIA',z:'D'}
+    ],
+    fb:{0:'Una postura que prioriza la soberanía sobre la presión de los donantes. Requiere capacidad de negociación y tolerancia a la incertidumbre. No hay respuesta incorrecta aquí — hay tensiones reales que su organización debe poder nombrar.',1:'Una respuesta honesta sobre las limitaciones reales. Muchas organizaciones quedan atrapadas en ciclos de financiamiento que no permiten procesos más lentos pero más pertinentes. Nombrar esa tensión es el primer paso para cambiarla.',2:'Una postura pragmática que no renuncia a la visión pero reconoce las restricciones actuales. El riesgo es que la "solución temporal" se vuelva permanente si la hoja de ruta no tiene compromisos concretos.',3:'Una respuesta de largo plazo que usa los canales disponibles para avanzar. No resuelve el dilema inmediato, pero siembra el camino.'},
+    wtype:'posture',correct:null},
+
+  M8C:{id:'M8C',seq:8,type:'NP',
+    file:'soberania_tecnologica.dat',time:120,
+    path:'/mision/camino_comunidad/modulo_08/posicionamiento/',
+    marco:'La soberanía tecnológica describe un espectro: desde la dependencia gestionada hasta el control comunitario de infraestructura y datos. Para la mayoría de ONGs en contextos con recursos limitados, la soberanía es un horizonte a construir progresivamente. En contextos de exclusión —rural o urbana— esto también implica decidir quién tiene poder sobre la narrativa que los datos construyen sobre las comunidades.',
+    sit:'Al concluir esta sección, su equipo reflexiona sobre qué tipo de relación quiere construir con los proveedores tecnológicos en los próximos tres años, considerando tanto sus comunidades rurales kaqchikeles como sus estudiantes urbanos en situación de vulnerabilidad.',
+    q:'¿Cuál describe mejor la orientación de su organización?',
+    opts:[
+      {t:'Dependencia gestionada — usamos las herramientas disponibles con conciencia crítica, exigiendo transparencia y protección de datos.',w:'DEPENDENCIA',z:'A'},
+      {t:'Adaptación activa — tomamos herramientas existentes pero las modificamos y contextualizamos para nuestras comunidades.',w:'ADAPTACIÓN',z:'B'},
+      {t:'Apropiación progresiva — construimos capacidad técnica interna para no depender de proveedores externos a largo plazo.',w:'APROPIACIÓN',z:'C'},
+      {t:'Soberanía tecnológica — apuntamos a que las comunidades controlen su propia infraestructura digital y los datos que las describen.',w:'SOBERANÍA',z:'D'}
+    ],
+    fb:{0:'Una postura honesta y realista. La clave es que la "gestión" sea genuina: con protocolos, evaluaciones periódicas y poder de negociación real, no solo aceptación de los términos del proveedor.',1:'Una postura que requiere capacidad técnica y creatividad institucional. Adaptar en lugar de adoptar pasivamente produce resultados más pertinentes, tanto en Sololá como en Villa Nueva.',2:'Una postura de mediano plazo que requiere inversión en formación y retención de talento técnico, frecuentemente escaso en ONGs con presupuestos limitados.',3:'El horizonte más ambicioso. En contextos de exclusión, esto también significa que las comunidades deciden cómo son descritas digitalmente — qué datos se producen, quién los lee y para qué.'},
+    wtype:'posture',correct:null},
+
+  M9:{id:'M9',seq:9,type:'NK',
+    file:'convenio_169_OIT_convergencia.exe',time:150,
+    path:'/mision/modulo_09/convergencia/',
+    marco:'Ningún marco ético de IA es suficiente por sí solo: se necesita combinar estándares técnicos internacionales con marcos locales de valores y derechos. En Guatemala, el Convenio 169 de la OIT establece derechos colectivos de los pueblos indígenas. Al mismo tiempo, los estándares de derechos humanos también protegen a comunidades urbanas marginalizadas. La gobernanza ética real articula ambas dimensiones.',
+    sit:'Al integrar los aprendizajes de esta misión, su equipo discute qué marco debería anclar cualquier política institucional de tecnología que su ONG adopte — considerando la diversidad de sus contextos: comunidades indígenas rurales y jóvenes en situación de exclusión urbana.',
+    q:'¿Cuál de estas afirmaciones sobre el Convenio 169 de la OIT es correcta?',
+    opts:[
+      {t:'Aplica únicamente a decisiones sobre tierras y recursos naturales, no a tecnología educativa.',w:'CONVENIO',z:null,correct:false},
+      {t:'Establece el derecho de pueblos indígenas a ser consultados sobre decisiones que los afecten — incluyendo, por extensión, implementaciones tecnológicas en sus comunidades.',w:'CONVENIO',z:null,correct:true},
+      {t:'Solo aplica si la comunidad cuenta con un idioma propio oficialmente reconocido por el Estado guatemalteco.',w:'CONVENIO',z:null,correct:false},
+      {t:'Su cumplimiento es voluntario para organizaciones de la sociedad civil.',w:'CONVENIO',z:null,correct:false}
+    ],
+    fb:{correct:'Correcto. El Convenio 169 es vinculante para Guatemala y reconoce el derecho a la consulta previa, libre e informada sobre medidas que afecten directamente a pueblos indígenas. Su aplicación a tecnología educativa no está explícitamente codificada, pero el principio es claro: las comunidades deben participar en las decisiones sobre herramientas que afectan sus procesos educativos y culturales. Para comunidades urbanas en situación de exclusión, el derecho a la participación informada también está garantizado por otros marcos de derechos humanos.',0:'El principio de consulta previa se aplica a cualquier decisión que afecte significativamente la vida de comunidades indígenas — y la tecnología en el aula claramente lo hace.',2:'El Convenio 169 aplica a todos los pueblos indígenas según sus propios criterios de identidad, no según el reconocimiento oficial del Estado.',3:'El Convenio es vinculante para el Estado. Las OSC que trabajan con comunidades indígenas tienen responsabilidad ética de respetar sus principios, independientemente de la obligatoriedad legal.'},
+    wtype:'knowledge',correct:1}
+};
+
+// ══════════════════════════════════════════
+// PROFILES
+// ══════════════════════════════════════════
+const PROFILES={
+  G_high:{name:'ARQUITECTOS DE GOBERNANZA',tag:'"Comprenden el terreno y saben cómo construir sobre él."',
+    desc:'Su organización combina un sólido dominio conceptual sobre IA con una orientación hacia marcos institucionales de gobernanza técnica. Entienden el sesgo algorítmico, las implicaciones del consentimiento de datos y la importancia de la rendición de cuentas distribuida. Están listos para formalizar políticas institucionales robustas que protejan a las comunidades con las que trabajan — tanto rurales como urbanas en situación de exclusión.',
+    str:'Vocabulario técnico preciso sobre IA y datos. Orientación hacia estándares internacionales. Comprensión de las responsabilidades institucionales ante fallas tecnológicas. Capacidad de negociación informada con proveedores.',
+    dev:'Incorporar perspectivas comunitarias e interculturales en sus marcos de gobernanza. Las políticas técnicamente sólidas necesitan también ser culturalmente pertinentes y accesibles para familias en situación de vulnerabilidad.',
+    fws:[{src:'UNESCO (2021)',txt:'Recomendación sobre la Ética de la Inteligencia Artificial — principios de responsabilidad, explicabilidad y no discriminación.'},{src:'PNUD (2023)',txt:'Estrategia de Gobernanza Digital para Organizaciones de Sociedad Civil — niveles de madurez y hoja de ruta.'},{src:'Catherine Walsh',txt:'Interculturalidad crítica — para integrar perspectivas comunitarias y mayas en sus marcos de gobernanza técnica.'}]},
+  G_medium:{name:'GUARDIANES EN FORMACIÓN',tag:'"La intuición es correcta; la base técnica está creciendo."',
+    desc:'Su organización tiene una orientación clara hacia la gobernanza y la rendición de cuentas, con algunas bases conceptuales sólidas. Hay conceptos clave que merecen profundización. Con inversión en alfabetización técnica, su postura institucional será mucho más efectiva para proteger a las comunidades — urbanas y rurales — con las que trabajan.',
+    str:'Sensibilidad ante los riesgos institucionales de adoptar tecnología sin análisis previo. Disposición a documentar, evaluar y establecer protocolos. Orientación hacia estándares y marcos de referencia.',
+    dev:'Profundizar en conceptos técnicos de IA y datos. Construir capacidad interna para leer y evaluar términos de servicio. Designar un referente técnico de confianza en el equipo.',
+    fws:[{src:'UNESCO (2021)',txt:'Recomendación sobre la Ética de la IA — principios de transparencia y responsabilidad como ancla de una política institucional.'},{src:'Access Now / Derechos Digitales LAC',txt:'Guías prácticas de privacidad de datos para OSC en América Latina.'},{src:'PNUD',txt:'Recursos de alfabetización digital con enfoque de derechos para ONGs en contextos vulnerados.'}]},
+  G_low:{name:'NAVEGANTES CON PROTOCOLO',tag:'"El rumbo es correcto; el mapa todavía se está dibujando."',
+    desc:'Su organización se orienta hacia marcos formales de gobernanza, pero aún tiene brechas conceptuales importantes sobre cómo funciona realmente la IA y cuáles son sus implicaciones en contextos de vulnerabilidad. Esto puede generar políticas que parezcan sólidas en papel pero que no capturen los riesgos más relevantes para las comunidades.',
+    str:'Voluntad de establecer protocolos y marcos institucionales. Apertura a estándares externos. Reconocimiento de que la tecnología requiere gobernanza antes de adoptarse.',
+    dev:'Fortalecer la alfabetización técnica del equipo. Identificar aliados técnicos de confianza. Comenzar con criterios simples: tres preguntas que toda herramienta debe responder antes de adoptarse.',
+    fws:[{src:'Mozilla Foundation',txt:'Guía de Alfabetización de IA para organizaciones — recursos accesibles para equipos no técnicos.'},{src:'UNESCO',txt:'Marco de Competencias en IA para Educadores — adaptable para equipos de ONGs educativas.'},{src:'CLACSO / FLACSO Guatemala',txt:'Publicaciones sobre desigualdad digital en América Central — contexto regional.'}]},
+  C_high:{name:'TEJEDORES CRÍTICOS',tag:'"Comprenden la tecnología y saben para quiénes deben trabajar."',
+    desc:'Su organización combina una comprensión técnica sólida de la IA con una orientación profundamente comunitaria e intercultural. Entienden el sesgo algorítmico, la colonialidad de los datos y los marcos de consulta — y los anclan en las realidades concretas de las comunidades con las que trabajan, tanto indígenas rurales como jóvenes en exclusión urbana.',
+    str:'Pensamiento crítico sobre tecnología y relaciones de poder. Arraigo comunitario real. Capacidad de articular marcos técnicos internacionales con perspectivas culturales propias. Mirada que integra lo rural y lo urbano.',
+    dev:'Documentar sus marcos propios y compartirlos como contribución al campo. Construir alianzas para incidir colectivamente en políticas públicas y estándares del sector.',
+    fws:[{src:'Catherine Walsh',txt:'Interculturalidad crítica y decolonialidad — para articular su práctica con un marco teórico que pueda compartirse.'},{src:'Convenio 169 de la OIT',txt:'Como marco jurídico de consulta comunitaria en decisiones tecnológicas en comunidades indígenas.'},{src:'CLACSO',txt:'Tecnologías digitales y desigualdad en América Latina — para situar su práctica en el debate regional.'}]},
+  C_medium:{name:'GUARDIANES DE TERRITORIO',tag:'"Las raíces son profundas; el vocabulario técnico está creciendo."',
+    desc:'Su organización tiene una identidad institucional clara anclada en la comunidad y el territorio, y una actitud crítica ante la tecnología importada. Trabajan con comunidades diversas — indígenas rurales y jóvenes en exclusión urbana — y entienden que la tecnología apropiada para cada contexto es diferente. Algunas brechas conceptuales técnicas dificultan el cuestionamiento informado de los proveedores.',
+    str:'Perspectiva comunitaria consolidada. Sensibilidad ante la colonialidad de las herramientas. Capacidad real de consulta y diálogo. Mirada que integra diferentes formas de exclusión.',
+    dev:'Construir vocabulario técnico preciso sobre IA, datos y privacidad. Buscar alianzas con organizaciones con mayor capacidad técnica para acompañar decisiones.',
+    fws:[{src:'Buen Vivir / Sumak Kawsay',txt:'Como marco filosófico para sus criterios de evaluación tecnológica institucional.'},{src:'Redes comunitarias — América Latina',txt:'Experiencias prácticas de soberanía tecnológica comunitaria en contextos de exclusión.'},{src:'Derechos Digitales / Access Now (LAC)',txt:'Recursos de derechos digitales para fortalecer el vocabulario técnico del equipo.'}]},
+  C_low:{name:'EXPLORADORES CON BRÚJULA',tag:'"Las preguntas correctas son el primer paso de toda buena misión."',
+    desc:'Su organización tiene valores comunitarios claros y una actitud crítica ante las tecnologías externas, pero aún está construyendo las bases conceptuales para convertir esa actitud en decisiones técnicamente informadas. Trabajan en contextos de alta vulnerabilidad — rural y urbana — donde esta capacidad de evaluación crítica es especialmente urgente.',
+    str:'Claridad de valores y compromiso comunitario genuino. Actitud crítica ante propuestas tecnológicas externas. Honestidad sobre lo que aún no se sabe — condición indispensable para aprender.',
+    dev:'Invertir en formación técnica básica sobre IA y datos. Buscar alianzas con organizaciones con mayor capacidad técnica. Empezar con tres preguntas simples que cualquier herramienta debe responder antes de adoptarse.',
+    fws:[{src:'PNUD / UNESCO',txt:'Recursos de introducción a la gobernanza de IA para OSC — sin prerrequisitos técnicos.'},{src:'Paulo Freire — Pedagogía del Oprimido',txt:'Aplicado a la tecnología: la pregunta crítica sobre para quién sirve una herramienta es siempre el punto de partida.'},{src:'REPEM Guatemala',txt:'Recursos sobre tecnología, educación popular y comunidad en el contexto centroamericano.'}]}
+};
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+const S={
+  org:'',path:null,seq:[],idx:0,curId:null,
+  ks:0,pt:{A:0,B:0,C:0,D:0},
+  clave:[],ans:{},
+  timer:null,tLeft:0,
+  selOpt:null,fbShown:false,started:null,
+  taTimer:null,taMax:0
+};
+
+// ══════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════
+const BOOT=[
+  {t:'MISIÓN UMBRAL — PROTOCOLO ÉTICA IA v1.0',c:'bl-title',d:300},
+  {t:'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',c:'bl-dim',d:600},
+  {t:'> Verificando integridad del sistema...',c:'bl-dim',d:900},
+  {t:'> Cargando marcos UNESCO / Ética de la IA... ',c:'bl-dim',d:1200,bar:true},
+  {t:'> Cargando marcos PNUD / Gobernanza Digital...            OK',c:'bl-ok',d:1900},
+  {t:'> Cargando marcos críticos / Interculturalidad (Walsh)... OK',c:'bl-ok',d:2200},
+  {t:'> Cargando Convenio 169 OIT / Buen Vivir...               OK',c:'bl-ok',d:2500},
+  {t:'> Cargando perfiles institucionales...                    OK',c:'bl-ok',d:2800},
+  {t:'> Inicializando motor de bifurcación...                   OK',c:'bl-ok',d:3000},
+  {t:'> ERROR: contextos_coloniales.dat [CARGANDO PARCHE]',c:'bl-err',d:3200},
+  {t:'> Parche aplicado. Continuando...                         OK',c:'bl-ok',d:3500},
+  {t:'',c:'bl-dim',d:3700},
+  {t:'> ACCESO CONCEDIDO. Iniciando Misión Umbral...',c:'bl-ok',d:3900}
+];
+
+function runBoot(){
+  const log=document.getElementById('boot-log');
+  BOOT.forEach(l=>{
+    setTimeout(()=>{
+      const d=document.createElement('div');
+      d.className='bl '+l.c; d.textContent=l.t;
+      if(l.bar){
+        const bg=document.createElement('span');bg.className='trans-bar-bg';
+        const fi=document.createElement('span');fi.className='trans-bar-fill';
+        bg.appendChild(fi);d.appendChild(bg);
+      }
+      log.appendChild(d);
+      log.scrollTop=log.scrollHeight;
+    },l.d);
+  });
+  setTimeout(()=>{
+    document.getElementById('boot').classList.add('hidden');
+    document.getElementById('start').classList.remove('hidden');
+  },4600);
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  runBoot();
+  const inp=document.getElementById('org-input');
+  const btn=document.getElementById('start-btn');
+  inp.addEventListener('input',()=>{btn.disabled=inp.value.trim().length<2;});
+  inp.addEventListener('keypress',e=>{if(e.key==='Enter'&&!btn.disabled)startGame();});
+});
+
+function startGame(){
+  S.org=document.getElementById('org-input').value.trim();
+  S.started=new Date();
+  S.seq=['M1','M2','M3','M4'];
+  S.idx=0;
+  document.getElementById('start').classList.add('hidden');
+  document.getElementById('game').classList.remove('hidden');
+  document.getElementById('tb-org').textContent='ORG: '+S.org.toUpperCase();
+  loadMod(S.seq[0]);
+}
+
+// ══════════════════════════════════════════
+// MODULE LOADING
+// ══════════════════════════════════════════
+function loadMod(id){
+  S.curId=id; S.selOpt=null; S.fbShown=false;
+  const m=MD[id];
+  ['marco-box','sit-box','fb-box'].forEach(i=>document.getElementById(i).style.display='none');
+  const og=document.getElementById('opts'); og.style.display='none'; og.innerHTML='';
+  document.getElementById('cont-btn').style.display='none';
+  document.getElementById('wait-msg').style.display='none';
+  document.getElementById('cont-btn').classList.remove('pulse');
+  document.getElementById('tb-mod').textContent='MÓDULO '+m.seq+' / 9';
+  document.getElementById('mod-path-el').innerHTML='<span>'+m.path+'</span>';
+  document.getElementById('content').className='m'+m.type;
+  runXfer(m.file,()=>{
+    typeText('marco-text',m.marco,()=>{
+      document.getElementById('marco-box').style.display='block';
+      setTimeout(()=>{
+        typeText('sit-text',m.sit,()=>{
+          document.getElementById('q-text').textContent=m.q;
+          document.getElementById('sit-box').style.display='block';
+          buildOpts(m);
+          document.getElementById('opts').style.display='flex';
+          document.getElementById('wait-msg').style.display='block';
+          startTimer(m.time);
+        });
+      },300);
+    });
+  });
+}
+
+function typeText(elId,text,cb){
+  const el=document.getElementById(elId);
+  el.textContent='';
+  let i=0;
+  const speed=Math.max(8,Math.min(18,Math.floor(2800/text.length)));
+  const iv=setInterval(()=>{
+    el.textContent+=text[i];
+    i++;
+    if(i>=text.length){clearInterval(iv);if(cb)cb();}
+  },speed);
+}
+
+function runXfer(fname,cb){
+  const fill=document.getElementById('xfer-fill');
+  const pct=document.getElementById('xfer-pct');
+  document.getElementById('xfer-name').textContent=fname;
+  document.getElementById('xfer-stat').textContent='DESCARGANDO...';
+  fill.style.width='0'; pct.textContent='0%';
+  let p=0;
+  const iv=setInterval(()=>{
+    p+=Math.random()*20+7;
+    if(p>=100){
+      p=100;clearInterval(iv);
+      fill.style.width='100%';pct.textContent='100%';
+      document.getElementById('xfer-stat').textContent='✓ VERIFICADO';
+      setTimeout(cb,250);
+    } else {fill.style.width=p+'%';pct.textContent=Math.floor(p)+'%';}
+  },70);
+}
+
+function buildOpts(m){
+  const grid=document.getElementById('opts');
+  ['A)','B)','C)','D)'].forEach((k,i)=>{
+    const b=document.createElement('button');
+    b.className='opt'; b.setAttribute('data-k',k);
+    b.textContent=m.opts[i].t;
+    b.onclick=()=>selectOpt(i);
+    grid.appendChild(b);
+  });
+}
+
+// ══════════════════════════════════════════
+// SELECTION & CONTINUE
+// ══════════════════════════════════════════
+function selectOpt(i){
+  if(S.fbShown)return;
+  S.selOpt=i;
+  document.querySelectorAll('.opt').forEach((b,j)=>b.classList.toggle('sel',j===i));
+  document.getElementById('wait-msg').style.display='none';
+  const cb=document.getElementById('cont-btn');
+  cb.style.display='inline-block';
+  cb.textContent='REGISTRAR RESPUESTA Y CONTINUAR →';
+}
+
+function continueGame(){
+  if(S.selOpt===null)return;
+  if(S.fbShown){advanceNext();return;}
+  showRegAnimation(()=>processAns());
+}
+
+function showRegAnimation(cb){
+  const ov=document.getElementById('reg-overlay');
+  ov.classList.remove('hidden');
+  const bin=document.getElementById('reg-bin');
+  const status=document.getElementById('reg-status');
+  let binStr='';
+  const binIv=setInterval(()=>{
+    for(let i=0;i<12;i++) binStr+=(Math.random()>.5?'1':'0');
+    if(binStr.length>200) binStr=binStr.slice(100);
+    bin.textContent=binStr;
+  },60);
+  const msgs=['Verificando con protocolo ético...','Comparando con marcos de referencia...','Registrando postura institucional...','RESPUESTA REGISTRADA ✓'];
+  let mi=0;
+  const msgIv=setInterval(()=>{mi++;if(mi<msgs.length)status.textContent=msgs[mi];},200);
+  setTimeout(()=>{
+    clearInterval(binIv);clearInterval(msgIv);
+    ov.classList.add('hidden');
+    cb();
+  },850);
+}
+
+function processAns(){
+  stopTimer();hideTimerAlert();
+  S.fbShown=true;
+  const m=MD[S.curId];
+  const i=S.selOpt;
+  const o=m.opts[i];
+  document.querySelectorAll('.opt').forEach(b=>b.disabled=true);
+  let word=o.w, wtype=m.wtype;
+  let lblTxt='// PERSPECTIVA REGISTRADA',lblCls='fb-neutral',fbTxt='';
+  if(m.type==='NK'){
+    const ok=o.correct===true;
+    if(ok){S.ks+=2;wtype='ok';lblTxt='// ANÁLISIS CORRECTO ✓';lblCls='fb-ok';fbTxt=m.fb.correct;}
+    else{wtype='warn';lblTxt='// ANÁLISIS REQUIERE REVISIÓN ⚠';lblCls='fb-err';fbTxt=m.fb[i]||'Revisa el marco referencial para profundizar.';}
+    document.querySelectorAll('.opt').forEach((b,j)=>{
+      if(m.opts[j].correct===true)b.classList.add('c-reveal');
+      else if(j===i&&!ok)b.classList.add('w-reveal');
+    });
+  } else {
+    fbTxt=m.fb[i]||'';
+    if(o.z)S.pt[o.z]++;
+    if(m.isBif)S.path=o.path;
+  }
+  S.clave.push({w:word,t:wtype});
+  S.ans[m.id]=i;
+  document.getElementById('fb-lbl').textContent=lblTxt;
+  document.getElementById('fb-lbl').className=lblCls;
+  document.getElementById('fb-text').textContent=fbTxt;
+  document.getElementById('fb-box').style.display='block';
+  showWordPopup(word,wtype,S.clave.length,()=>{
+    updateClave();
+    const cb=document.getElementById('cont-btn');
+    cb.textContent=m.isBif?'ACCEDER AL SIGUIENTE TRAMO →':'CONTINUAR AL MÓDULO SIGUIENTE →';
+  });
+}
+
+// ══════════════════════════════════════════
+// WORD POPUP
+// ══════════════════════════════════════════
+function showWordPopup(word,type,count,cb){
+  const popup=document.getElementById('word-popup');
+  const disp=document.getElementById('wp-display');
+  const bar=document.getElementById('wp-bar');
+  const sub=document.getElementById('wp-sub');
+  disp.textContent='';
+  bar.style.width='0';
+  sub.textContent='Añadiendo al protocolo...';
+  popup.classList.remove('hidden');
+  let i=0;
+  const suffix=type==='ok'?' ✓':type==='warn'?' ⚠':'';
+  const iv=setInterval(()=>{
+    if(i<=word.length){
+      disp.textContent=word.slice(0,i)+(i<word.length?'█':'');
+      bar.style.width=(i/word.length*70)+'%';
+      i++;
+    } else {
+      clearInterval(iv);
+      disp.textContent=word+suffix;
+      bar.style.width='100%';
+      sub.textContent='Fragmento '+count+' / 9 registrado en protocolo';
+      setTimeout(()=>{popup.classList.add('hidden');if(cb)cb();},1100);
+    }
+  },60);
+}
+
+// ══════════════════════════════════════════
+// ADVANCE
+// ══════════════════════════════════════════
+function advanceNext(){
+  stopTimer();
+  const m=MD[S.curId];
+  if(m.isBif){showBif(()=>{
+    const pm=S.path==='G'?['M5G','M6G','M7G','M8G']:['M5C','M6C','M7C','M8C'];
+    S.seq=['M1','M2','M3','M4',...pm,'M9'];
+    S.idx=4;
+    showTransition(S.idx,()=>loadMod(S.seq[S.idx]));
+  });return;}
+  S.idx++;
+  if(S.idx>=S.seq.length){showResults();return;}
+  showTransition(S.idx,()=>loadMod(S.seq[S.idx]));
+}
+
+// ══════════════════════════════════════════
+// TRANSITION ANIMATION
+// ══════════════════════════════════════════
+function showTransition(nextIdx,cb){
+  const ov=document.getElementById('trans-overlay');
+  const log=document.getElementById('trans-log');
+  ov.classList.remove('hidden');
+  log.innerHTML='';
+  const nextMod=S.seq[nextIdx];
+  const nextM=MD[nextMod];
+  const lines=[
+    {t:'> Módulo completado. Archivando respuesta...',c:'tl-ok',d:0},
+    {t:'> Actualizando Clave Ética ['+S.clave.length+'/9 fragmentos]...',c:'tl-dim',d:200},
+    {t:'> Desconectando de '+MD[S.curId].path,c:'tl-dim',d:400},
+    {t:'> NUEVO ACCESO SOLICITADO',c:'tl-cyan',d:600},
+    {t:'> Conectando a '+nextM.path,c:'tl-dim',d:800},
+    {t:'> Descifrado de credenciales... OK',c:'tl-ok',d:1050},
+    {t:'> Cargando '+nextMod+'.dat... ',c:'tl-dim',d:1200,bar:true},
+    {t:'> ACCESO CONCEDIDO',c:'tl-ok',d:1600}
+  ];
+  lines.forEach(l=>{
+    setTimeout(()=>{
+      const d=document.createElement('div');
+      d.className='tl '+l.c; d.textContent=l.t;
+      if(l.bar){const bg=document.createElement('span');bg.className='trans-bar-bg';const fi=document.createElement('span');fi.className='trans-bar-fill';bg.appendChild(fi);d.appendChild(bg);}
+      log.appendChild(d);log.scrollTop=log.scrollHeight;
+    },l.d);
+  });
+  setTimeout(()=>{ov.classList.add('hidden');cb();},1900);
+}
+
+// ══════════════════════════════════════════
+// BIFURCATION
+// ══════════════════════════════════════════
+function showBif(cb){
+  const ov=document.getElementById('bif-overlay');
+  ov.classList.remove('hidden');
+  const pn={G:'RUTA: GOBERNANZA TÉCNICA',C:'RUTA: COMUNIDAD Y TERRITORIO'};
+  const pd={G:'Su respuesta orienta la misión hacia los módulos de gobernanza técnica, rendición de cuentas y marcos institucionales. Los módulos 5–8 han sido reconfigurados.',
+    C:'Su respuesta orienta la misión hacia los módulos de soberanía comunitaria, interculturalidad crítica y Buen Vivir. Los módulos 5–8 han sido reconfigurados.'};
+  document.getElementById('bif-pname').textContent=pn[S.path];
+  document.getElementById('bif-desc').textContent=pd[S.path];
+  let dots=0;
+  const ld=document.getElementById('bif-load');
+  const dv=setInterval(()=>{dots=(dots+1)%4;ld.textContent='Reconfigurando módulos 5–8'+'.'.repeat(dots);},380);
+  setTimeout(()=>{clearInterval(dv);ov.classList.add('hidden');cb();},3200);
+}
+
+// ══════════════════════════════════════════
+// TIMER
+// ══════════════════════════════════════════
+function startTimer(sec){
+  S.tLeft=sec;S.taMax=sec;updateTimer();
+  S.timer=setInterval(()=>{
+    S.tLeft--;updateTimer();
+    if(!S.fbShown){
+      if(S.tLeft===60)showTimerAlert(60,'⚠ SISTEMA — 60 SEGUNDOS','Dialoguen y seleccionen una respuesta.','ta-yellow',60,S.taMax);
+      if(S.tLeft===30)showTimerAlert(30,'⚠ SISTEMA — 30 SEGUNDOS','Selecciona una respuesta para continuar.','ta-orange',30,S.taMax);
+      if(S.tLeft===10)showTimerAlert(10,'🔴 TIEMPO CRÍTICO — 10 SEGUNDOS','SELECCIONA AHORA.','ta-red',10,S.taMax);
+    }
+    if(S.tLeft<=0){
+      clearInterval(S.timer);S.tLeft=0;updateTimer();
+      if(!S.fbShown){
+        if(S.selOpt!==null){showRegAnimation(()=>processAns());}
+        else{document.getElementById('content').classList.add('force-flash');showTimerAlert(0,'🔴 TIEMPO AGOTADO','Debes seleccionar una respuesta para continuar.','ta-red',0,1);}
+      }
+    }
+  },1000);
+}
+
+function stopTimer(){clearInterval(S.timer);}
+function updateTimer(){
+  const t=S.tLeft,el=document.getElementById('tb-timer');
+  el.textContent=Math.floor(t/60)+':'+(t%60).toString().padStart(2,'0');
+  el.className=t>60?'t-green':t>30?'t-yellow':t>10?'t-orange':'t-red';
+}
+
+function showTimerAlert(secs,title,msg,cls,current,max){
+  const ov=document.getElementById('timer-alert');
+  const box=document.getElementById('ta-box');
+  const fill=document.getElementById('ta-bar-fill');
+  document.getElementById('ta-title').textContent=title;
+  document.getElementById('ta-msg').textContent=msg;
+  box.className='ta-box '+cls;
+  const pct=max>0?(current/max*100):0;
+  fill.style.width=pct+'%';
+  ov.classList.remove('hidden');
+  if(S.taTimer)clearTimeout(S.taTimer);
+  if(secs>0)S.taTimer=setTimeout(()=>ov.classList.add('hidden'),5000);
+  if(secs<=30)document.getElementById('cont-btn').classList.add('pulse');
+}
+
+function hideTimerAlert(){
+  document.getElementById('timer-alert').classList.add('hidden');
+  document.getElementById('content').classList.remove('force-flash');
+  document.getElementById('cont-btn').classList.remove('pulse');
+}
+
+// ══════════════════════════════════════════
+// CLAVE BAR
+// ══════════════════════════════════════════
+function updateClave(){
+  const c=document.getElementById('clave-words');c.innerHTML='';
+  S.clave.forEach(item=>{
+    const s=document.createElement('span');
+    s.className='cw cw-'+item.t;
+    s.textContent=item.w+(item.t==='ok'?' ✓':item.t==='warn'?' ⚠':'');
+    c.appendChild(s);
+  });
+}
+
+// ══════════════════════════════════════════
+// RESULTS
+// ══════════════════════════════════════════
+function showResults(){
+  document.getElementById('game').classList.add('hidden');
+  document.getElementById('results').classList.remove('hidden');
+  const lvl=S.ks>=4?'high':S.ks>=2?'medium':'low';
+  const pr=PROFILES[S.path+'_'+lvl];
+  S._pr=pr;S._lvl=lvl;
+  const zw={A:'EFICIENCIA',B:'DERECHOS',C:'COMUNIDAD',D:'TRANSFORMACIÓN'};
+  const dom=Object.keys(S.pt).sort((a,b)=>S.pt[b]-S.pt[a])[0];
+  S._dom=zw[dom];
+  const rc=document.getElementById('r-clave');rc.innerHTML='';
+  S.clave.forEach(item=>{
+    const s=document.createElement('span');
+    s.className='cfw cfw-'+item.t;
+    s.textContent=item.w+(item.t==='ok'?' ✓':item.t==='warn'?' ⚠':'');
+    rc.appendChild(s);
+  });
+  const ds=document.createElement('span');
+  ds.className='cfw cfw-marco';ds.textContent='[ '+S._dom+' ]';rc.appendChild(ds);
+  document.getElementById('r-org').textContent=S.org;
+  document.getElementById('r-ks').textContent=S.ks+'/6';
+  document.getElementById('r-ruta').textContent=S.path==='G'?'Gobernanza Técnica':'Comunidad y Territorio';
+  document.getElementById('r-pname').textContent=pr.name;
+  document.getElementById('r-ptag').textContent=pr.tag;
+  document.getElementById('r-pdesc').textContent=pr.desc;
+  document.getElementById('r-pstr').textContent=pr.str;
+  document.getElementById('r-pdev').textContent=pr.dev;
+  const fc=document.getElementById('r-fws');fc.innerHTML='';
+  pr.fws.forEach(f=>{
+    const d=document.createElement('div');d.className='fw-item';
+    d.innerHTML='<span class="fw-src">'+f.src+'</span><span class="fw-txt">'+f.txt+'</span>';
+    fc.appendChild(d);
+  });
+}
+
+// ══════════════════════════════════════════
+// PDF — CLEAN WHITE DESIGN
+// ══════════════════════════════════════════
+function generatePDF(){
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:'mm',format:'a4'});
+  const W=210,H=297,M=20,CW=W-M*2;
+  let y=0;
+
+  function np(){doc.addPage();y=M;}
+  function ck(n){if(y+n>H-M)np();}
+  function line(col){doc.setDrawColor(...col);doc.setLineWidth(.3);doc.line(M,y,W-M,y);y+=5;}
+  function hdr(txt,col){
+    ck(10);
+    doc.setFillColor(...col);doc.rect(M,y,CW,7,'F');
+    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(8);
+    doc.text(txt,M+3,y+5);y+=10;
+  }
+  function para(txt,size,col){
+    doc.setTextColor(...col);doc.setFont('helvetica','normal');doc.setFontSize(size);
+    const lines=doc.splitTextToSize(txt,CW);
+    lines.forEach(l=>{ck(6);doc.text(l,M,y);y+=5;});
+  }
+
+  const C_DARK=[30,40,35];
+  const C_GREEN=[0,100,50];
+  const C_TEAL=[0,80,100];
+  const C_GRAY=[100,110,105];
+  const C_LIGHT=[240,245,242];
+  const C_RED=[160,40,40];
+  const C_ORANGE=[180,90,20];
+
+  // ── COVER ──────────────────────────────
+  doc.setFillColor(15,50,30);doc.rect(0,0,W,H,'F');
+  // White panel
+  doc.setFillColor(252,254,252);doc.rect(20,35,W-40,H-70,'F');
+
+  doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(200,240,210);
+  doc.text('RED LATINOAMERICANA DE ÉTICA DIGITAL',W/2,22,{align:'center'});
+  doc.setFontSize(28);doc.setTextColor(255,255,255);
+  doc.text('MISIÓN UMBRAL',W/2,32,{align:'center'});
+
+  y=50;
+  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(...C_GREEN);
+  doc.text('INFORME INSTITUCIONAL',M+5,y);y+=6;
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...C_GRAY);
+  doc.text('Protocolo de Gobernanza Ética de Inteligencia Artificial',M+5,y);y+=12;
+
+  doc.setDrawColor(...C_GREEN);doc.setLineWidth(.5);doc.line(M+5,y,W-M-5,y);y+=8;
+
+  doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(...C_DARK);
+  doc.text('ORGANIZACIÓN:',M+5,y);y+=5;
+  doc.setFontSize(16);doc.setTextColor(...C_GREEN);
+  doc.text(S.org,M+5,y);y+=10;
+
+  doc.setDrawColor(200,220,205);doc.setLineWidth(.3);doc.line(M+5,y,W-M-5,y);y+=8;
+
+  doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(...C_DARK);
+  doc.text('PERFIL IDENTIFICADO:',M+5,y);y+=5;
+  doc.setFontSize(13);doc.setTextColor(...C_GREEN);
+  doc.text(S._pr.name,M+5,y);y+=6;
+  doc.setFont('helvetica','italic');doc.setFontSize(9);doc.setTextColor(...C_GRAY);
+  doc.text(S._pr.tag,M+5,y);y+=10;
+
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...C_DARK);
+  const rl=S.path==='G'?'Gobernanza Técnica':'Comunidad y Territorio';
+  const ll=S._lvl==='high'?'Alto':S._lvl==='medium'?'Medio':'Bajo';
+  doc.text('Ruta tomada: '+rl,M+5,y);y+=5;
+  doc.text('Dominio conceptual: '+S.ks+' / 6 puntos ('+ll+')',M+5,y);y+=5;
+  doc.text('Marco dominante: '+S._dom,M+5,y);y+=10;
+
+  doc.setDrawColor(200,220,205);doc.setLineWidth(.3);doc.line(M+5,y,W-M-5,y);y+=8;
+
+  // Clave on cover
+  doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(...C_DARK);
+  doc.text('CLAVE ÉTICA:',M+5,y);y+=5;
+  let cx=M+5;
+  const tmap={ok:C_GREEN,warn:C_ORANGE,posture:[160,80,0],path:[80,0,160],marco:C_TEAL};
+  const allCl=[...S.clave,{w:'['+S._dom+']',t:'marco'}];
+  allCl.forEach(item=>{
+    const col=tmap[item.t]||C_DARK;
+    const lbl=item.w+(item.t==='ok'?' ✓':item.t==='warn'?' ⚠':'');
+    doc.setFontSize(7);
+    const tw=doc.getTextWidth(lbl)+4;
+    if(cx+tw>W-M-5){cx=M+5;y+=7;}
+    doc.setDrawColor(...col);doc.setLineWidth(.25);doc.rect(cx,y-4.5,tw,5.5,'S');
+    doc.setTextColor(...col);doc.text(lbl,cx+2,y);
+    cx+=tw+2;
+  });
+  y+=8;
+  const ds=S.started?S.started.toLocaleDateString('es-GT',{year:'numeric',month:'long',day:'numeric'}):new Date().toLocaleDateString('es-GT',{year:'numeric',month:'long',day:'numeric'});
+  doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(...C_GRAY);
+  doc.text('Fecha de misión: '+ds,M+5,y);
+
+  doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(200,220,210);
+  doc.text('MISIÓN UMBRAL v1.0 · Programa Trone Cohort · Team4Tech / EduK\'at',W/2,H-15,{align:'center'});
+
+  // ── PAGE 2: PERFIL COMPLETO ────────────
+  np();
+  doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(...C_GRAY);
+  doc.text('MISIÓN UMBRAL · '+S.org.toUpperCase()+' · PERFIL INSTITUCIONAL',M,y);
+  doc.setDrawColor(200,210,200);doc.setLineWidth(.2);doc.line(M,y+2,W-M,y+2);y+=8;
+
+  hdr('PERFIL INSTITUCIONAL IDENTIFICADO',C_GREEN);
+  doc.setFont('helvetica','bold');doc.setFontSize(14);doc.setTextColor(...C_GREEN);
+  ck(10);doc.text(S._pr.name,M,y);y+=6;
+  doc.setFont('helvetica','italic');doc.setFontSize(9);doc.setTextColor(...C_GRAY);
+  ck(6);doc.text(S._pr.tag,M,y);y+=9;
+
+  hdr('DESCRIPCIÓN INSTITUCIONAL',[50,80,60]);
+  para(S._pr.desc,9,C_DARK);y+=4;
+  hdr('FORTALEZAS IDENTIFICADAS',[30,100,70]);
+  para(S._pr.str,9,C_DARK);y+=4;
+  hdr('ÁREAS A DESARROLLAR',[150,80,20]);
+  para(S._pr.dev,9,C_DARK);y+=6;
+
+  hdr('MARCOS REFERENCIALES RECOMENDADOS',C_TEAL);
+  S._pr.fws.forEach(f=>{
+    ck(14);
+    doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(...C_TEAL);
+    doc.text(f.src,M,y);y+=5;
+    para(f.txt,8.5,C_DARK);y+=2;
+    doc.setDrawColor(220,230,225);doc.setLineWidth(.2);doc.line(M,y,W-M,y);y+=4;
+  });
+
+  // ── PAGE 3: CLAVE ÉTICA ────────────────
+  np();
+  doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(...C_GRAY);
+  doc.text('MISIÓN UMBRAL · '+S.org.toUpperCase()+' · CLAVE ÉTICA',M,y);
+  doc.setDrawColor(200,210,200);doc.setLineWidth(.2);doc.line(M,y+2,W-M,y+2);y+=8;
+
+  hdr('CLAVE ÉTICA — ANÁLISIS DE FRAGMENTOS',C_GREEN);
+  doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(...C_GRAY);
+  ck(6);doc.text('Cada fragmento representa una decisión tomada durante la misión. La combinación es única para su organización.',M,y);y+=8;
+
+  const mnames={M1:'Módulo 01 — Situación inicial',M2:'Módulo 02 — Análisis conceptual',M3:'Módulo 03 — Posicionamiento lingüístico/cultural',M4:'Módulo 04 — Punto de bifurcación',M5G:'Módulo 05 — Análisis (Ruta Gobernanza)',M6G:'Módulo 06 — Posicionamiento (Ruta Gobernanza)',M7G:'Módulo 07 — Nodo de tensión (Ruta Gobernanza)',M8G:'Módulo 08 — Posicionamiento final (Ruta Gobernanza)',M5C:'Módulo 05 — Análisis (Ruta Comunidad)',M6C:'Módulo 06 — Posicionamiento (Ruta Comunidad)',M7C:'Módulo 07 — Nodo de tensión (Ruta Comunidad)',M8C:'Módulo 08 — Posicionamiento final (Ruta Comunidad)',M9:'Módulo 09 — Convergencia final'};
+
+  S.seq.forEach((mid,ii)=>{
+    const cv=S.clave[ii];if(!cv)return;
+    ck(16);
+    const col=tmap[cv.t]||C_DARK;
+    doc.setFillColor(...C_LIGHT);doc.rect(M,y,CW,12,'F');
+    doc.setDrawColor(...col);doc.setLineWidth(.4);doc.line(M,y,M,y+12);
+    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(...C_GRAY);
+    doc.text(mnames[mid]||mid,M+4,y+4);
+    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(...col);
+    doc.text(cv.w+(cv.t==='ok'?' ✓':cv.t==='warn'?' ⚠':''),M+4,y+10);
+    if(S.ans[mid]!==undefined&&MD[mid]){
+      const ot=MD[mid].opts[S.ans[mid]].t;
+      doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(...C_DARK);
+      doc.text((ot.length>75?ot.substring(0,72)+'...':ot),M+50,y+10);
+    }
+    y+=15;
+  });
+
+  ck(16);
+  doc.setFillColor(230,245,240);doc.rect(M,y,CW,12,'F');
+  doc.setDrawColor(...C_TEAL);doc.setLineWidth(.4);doc.line(M,y,M,y+12);
+  doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(...C_GRAY);
+  doc.text('Marco dominante — calculado a partir de la distribución de posturas',M+4,y+4);
+  doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(...C_TEAL);
+  doc.text('[ '+S._dom+' ]',M+4,y+10);
+  y+=18;
+
+  doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(...C_GRAY);
+  doc.text('MISIÓN UMBRAL v1.0 · Red Latinoamericana de Ética Digital · Programa Trone Cohort · Team4Tech / EduK\'at',M,H-10);
+
+  doc.save('Informe_Mision_Umbral_'+S.org.replace(/\s+/g,'_')+'.pdf');
+}
+</script>
+</body>
+</html>
